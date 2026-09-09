@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="sk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Diagramy - Algoritmizácia</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-area">
+        <a class="brand" href="index.html" aria-label="Karel online">
+          <div class="brand-mark" aria-hidden="true">K</div>
+          <div>
+            <h1>Algoritmizácia</h1>
+            <p>Praktické cvičenia bez inštalácie</p>
+          </div>
+        </a>
+        <nav class="main-nav" aria-label="Navigácia">
+          <a href="index.html">Karel</a>
+          <a class="active" href="diagramy.html">Diagramy</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="diagram-main">
+      <section class="panel content-panel intro-section">
+        <h2>Vývojové diagramy</h2>
+        <p>Vývojový diagram je grafický spôsob zápisu algoritmu. Pomocou štandardných značiek zobrazuje jednotlivé kroky, rozhodnutia, vstupy a výstupy a smer vykonávania algoritmu.</p>
+        <p>Vyberte si zadanie a vytvorte preň vývojový diagram. Pred kreslením si určte vstupy, výstupy, jednotlivé kroky algoritmu a miesta, kde sa algoritmus musí rozhodovať.</p>
+      </section>
+
+      <section class="panel content-panel" aria-labelledby="symbolsHeading">
+        <div class="section-title">
+          <h2 id="symbolsHeading">Značky vývojového diagramu</h2>
+          <p>Používajte základné značky. V rozhodnutí vždy jasne označte vetvy, napríklad Áno a Nie.</p>
+        </div>
+
+        <div class="symbol-grid">
+          <article class="symbol-card">
+            <div class="symbol-canvas">
+              <div class="flow-shape terminator">Začiatok</div>
+            </div>
+            <div>
+              <h3>Začiatok / koniec</h3>
+              <p>Označuje miesto, kde algoritmus začína alebo končí.</p>
+              <div class="symbol-example">Príklady: <code>Začiatok</code>, <code>Koniec</code></div>
+            </div>
+          </article>
+
+          <article class="symbol-card">
+            <div class="symbol-canvas">
+              <div class="flow-shape process">Vypočítaj cenu</div>
+            </div>
+            <div>
+              <h3>Operácia / spracovanie</h3>
+              <p>Predstavuje konkrétnu operáciu alebo krok algoritmu.</p>
+              <div class="symbol-example">Príklad: <code>Zvýš počet pokusov o 1</code></div>
+            </div>
+          </article>
+
+          <article class="symbol-card">
+            <div class="symbol-canvas">
+              <div class="decision-symbol" aria-label="Rozhodnutie s vetvami Áno a Nie">
+                <div class="flow-shape decision"><span>Je heslo správne?</span></div>
+                <span class="decision-branch yes" aria-hidden="true"></span>
+                <span class="decision-branch no" aria-hidden="true"></span>
+                <span class="branch-label yes">Áno</span>
+                <span class="branch-label no">Nie</span>
+              </div>
+            </div>
+            <div>
+              <h3>Rozhodnutie / podmienka</h3>
+              <p>Používa sa vtedy, keď ďalší postup závisí od splnenia podmienky.</p>
+              <div class="symbol-example">Vetvy označte hodnotami ako <code>Áno</code> a <code>Nie</code>.</div>
+            </div>
+          </article>
+
+          <article class="symbol-card">
+            <div class="symbol-canvas">
+              <div class="flow-shape data"><span>Zadaj PIN</span></div>
+            </div>
+            <div>
+              <h3>Vstup / výstup</h3>
+              <p>Používa sa pri získavaní vstupných údajov alebo pri zobrazovaní výsledku.</p>
+              <div class="symbol-example">Príklady: <code>Zadaj PIN</code>, <code>Zobraz výsledok</code></div>
+            </div>
+          </article>
+
+          <article class="symbol-card">
+            <div class="symbol-canvas">
+              <div class="flow-line-demo" aria-hidden="true"></div>
+            </div>
+            <div>
+              <h3>Smer vykonávania</h3>
+              <p>Šípky určujú poradie, v ktorom sa jednotlivé kroky algoritmu vykonávajú.</p>
+              <div class="symbol-example">Každý dôležitý prechod medzi značkami má mať šípku.</div>
+            </div>
+          </article>
+
+          <article class="symbol-card">
+            <div class="symbol-canvas">
+              <div class="flow-shape connector">A</div>
+            </div>
+            <div>
+              <h3>Spojka</h3>
+              <p>Používa sa pri väčších diagramoch na pokračovanie toku na inom mieste diagramu bez veľmi dlhej spojnice.</p>
+              <div class="symbol-example">Používajte ju skôr výnimočne.</div>
+            </div>
+          </article>
+        </div>
+
+        <h3 class="subheading">Pravidlá</h3>
+        <ul class="rules-list">
+          <li>Diagram má mať jasne označený začiatok a koniec.</li>
+          <li>Jednotlivé kroky prepájajte šípkami v smere vykonávania.</li>
+          <li>Do obdĺžnika zapisujte činnosť alebo operáciu.</li>
+          <li>Do kosoštvorca zapisujte otázku alebo podmienku.</li>
+          <li>Vetvy vychádzajúce z rozhodnutia označte napr. Áno a Nie.</li>
+          <li>Vstup a výstup zapisujte pomocou rovnobežníka.</li>
+          <li>Text v značkách má byť krátky a jednoznačný.</li>
+          <li>Vyhýbajte sa križovaniu spojníc, ak je možné diagram usporiadať prehľadnejšie.</li>
+          <li>Diagram má opisovať všeobecný algoritmus, nie iba jeden konkrétny prípad.</li>
+        </ul>
+      </section>
+
+      <section class="panel content-panel" aria-labelledby="exampleHeading">
+        <div class="section-title">
+          <h2 id="exampleHeading">Krátky príklad</h2>
+          <p>Kontrola plnoletosti ukazuje kombináciu vstupu, rozhodnutia, dvoch výstupov a spoločného konca.</p>
+        </div>
+
+        <div class="flowchart-example">
+          <svg class="flowchart-svg" viewBox="0 0 680 500" role="img" aria-labelledby="adultFlowTitle adultFlowDesc">
+            <title id="adultFlowTitle">Vývojový diagram kontroly plnoletosti</title>
+            <desc id="adultFlowDesc">Začiatok, zadanie veku, rozhodnutie či je vek aspoň 18, zobrazenie výsledku a koniec.</desc>
+            <defs>
+              <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#263241"></path>
+              </marker>
+            </defs>
+
+            <g fill="#ffffff" stroke="#263241" stroke-width="2.5">
+              <rect x="260" y="20" width="160" height="46" rx="23"></rect>
+              <polygon points="238,100 436,100 414,150 216,150"></polygon>
+              <polygon points="340,190 430,250 340,310 250,250"></polygon>
+              <polygon points="72,350 290,350 266,404 48,404"></polygon>
+              <polygon points="390,350 608,350 584,404 366,404"></polygon>
+              <rect x="260" y="438" width="160" height="46" rx="23"></rect>
+            </g>
+
+            <g fill="#17202a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="800" text-anchor="middle">
+              <text x="340" y="49">Začiatok</text>
+              <text x="326" y="129">Zadaj vek</text>
+              <text x="340" y="245">Je vek</text>
+              <text x="340" y="266">&gt;= 18?</text>
+              <text x="169" y="381">Zobraz "Plnoletý"</text>
+              <text x="487" y="381">Zobraz "Neplnoletý"</text>
+              <text x="340" y="467">Koniec</text>
+            </g>
+
+            <g fill="none" stroke="#263241" stroke-width="2.5" marker-end="url(#arrow)">
+              <path d="M340 66 L340 94"></path>
+              <path d="M340 150 L340 184"></path>
+              <path d="M250 250 C178 250 169 306 169 344"></path>
+              <path d="M430 250 C502 250 487 306 487 344"></path>
+              <path d="M169 404 C169 430 244 461 253 461"></path>
+              <path d="M487 404 C487 430 436 461 427 461"></path>
+            </g>
+
+            <g fill="#5b6675" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="900" text-anchor="middle">
+              <text x="210" y="282">Áno</text>
+              <text x="470" y="282">Nie</text>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <section class="panel content-panel drawio-callout" aria-labelledby="drawioHeading">
+        <div>
+          <h2 id="drawioHeading">Kde diagram vytvoriť?</h2>
+          <p>Vývojové diagramy vytvárajte v nástroji draw.io (diagrams.net). Nie je potrebná inštalácia, editor je dostupný priamo v prehliadači.</p>
+          <p>V ľavom paneli môžete cez More Shapes → Flowchart zapnúť knižnicu značiek pre vývojové diagramy.</p>
+        </div>
+        <a class="drawio-button" href="https://app.diagrams.net/" target="_blank" rel="noopener noreferrer">Otvoriť draw.io</a>
+      </section>
+
+      <section class="panel content-panel" aria-labelledby="exercisesHeading">
+        <div class="section-title">
+          <h2 id="exercisesHeading">Úlohy</h2>
+          <p>Pre každé zadanie najprv identifikujte vstupy, výstupy, operácie a rozhodnutia. Potom vytvorte vývojový diagram v draw.io.</p>
+        </div>
+
+        <div class="exercise-grid">
+          <article class="exercise-card">
+            <div class="exercise-number">1</div>
+            <div>
+              <h3>Kávový automat</h3>
+              <p>Používateľ vyberie typ nápoja. Automat skontroluje, či má dostatok vody a potrebných surovín. Ak niektorá surovina chýba, zobrazí chybu. Ak je všetko dostupné, pripraví nápoj. Pri cappuccine pridá aj mlieko a následne oznámi, že nápoj je pripravený.</p>
+              <div class="exercise-focus">Zameranie: sekvencia a viacero podmienok</div>
+            </div>
+          </article>
+
+          <article class="exercise-card">
+            <div class="exercise-number">2</div>
+            <div>
+              <h3>Prihlásenie do systému</h3>
+              <p>Používateľ zadá používateľské meno a heslo. Ak sú údaje správne, systém používateľa prihlási. Ak sú nesprávne, môže ich zadať znova. Po troch neúspešných pokusoch sa ďalšie prihlasovanie zablokuje.</p>
+              <div class="exercise-focus">Zameranie: podmienka, opakovanie, počítadlo</div>
+            </div>
+          </article>
+
+          <article class="exercise-card">
+            <div class="exercise-number">3</div>
+            <div>
+              <h3>Výber hotovosti z bankomatu</h3>
+              <p>Používateľ vloží kartu a zadá PIN. Ak je PIN nesprávny, operácia sa nepovolí. Pri správnom PIN-e používateľ zadá požadovanú sumu. Systém skontroluje zostatok na účte. Ak má používateľ dostatok prostriedkov, bankomat vydá peniaze; inak zobrazí informáciu o nedostatku prostriedkov.</p>
+              <div class="exercise-focus">Zameranie: vstup, výstup a nadväzujúce rozhodnutia</div>
+            </div>
+          </article>
+
+          <article class="exercise-card">
+            <div class="exercise-number">4</div>
+            <div>
+              <h3>Prechod cez priechod pre chodcov</h3>
+              <p>Chodec príde k semaforu. Ak svieti zelená, môže prejsť cez cestu. Ak zelená nesvieti, čaká a kontroluje semafor dovtedy, kým sa zelená nerozsvieti. Potom prejde cez cestu.</p>
+              <div class="exercise-focus">Zameranie: podmienka a opakovanie</div>
+            </div>
+          </article>
+
+          <article class="exercise-card">
+            <div class="exercise-number">5</div>
+            <div>
+              <h3>Parkovací automat</h3>
+              <p>Používateľ zadá požadovaný čas parkovania. Automat vypočíta cenu. Používateľ zaplatí kartou. Ak je platba úspešná, systém vytvorí parkovací lístok. Ak platba zlyhá, používateľ si môže vybrať medzi opakovaním platby a zrušením operácie.</p>
+              <div class="exercise-focus">Zameranie: vstup/výstup a vetvenie</div>
+            </div>
+          </article>
+
+          <article class="exercise-card">
+            <div class="exercise-number">6</div>
+            <div>
+              <h3>Samoobslužná pokladňa</h3>
+              <p>Zákazník postupne skenuje produkty. Po každom produkte sa jeho cena pripočíta k celkovej sume. Produkty skenuje dovtedy, kým nezvolí možnosť "Zaplatiť". Potom si vyberie spôsob platby a po úspešnej platbe systém vytlačí alebo zobrazí doklad.</p>
+              <div class="exercise-focus">Zameranie: cyklus s neznámym počtom opakovaní</div>
+            </div>
+          </article>
+
+          <article class="exercise-card">
+            <div class="exercise-number">7</div>
+            <div>
+              <h3>Výťah</h3>
+              <p>Používateľ zadá požadované poschodie. Systém porovná požadované poschodie s aktuálnym poschodím. Ak je vyššie, výťah sa pohybuje smerom hore. Ak je nižšie, pohybuje sa dole. Ak sa výťah už nachádza na požadovanom poschodí, iba otvorí dvere. Po dosiahnutí cieľového poschodia výťah zastaví a otvorí dvere.</p>
+              <div class="exercise-focus">Zameranie: viacnásobné vetvenie a opakovanie</div>
+            </div>
+          </article>
+
+          <article class="exercise-card">
+            <div class="exercise-number">8</div>
+            <div>
+              <h3>Objednávka jedla</h3>
+              <p>Používateľ postupne pridáva položky do košíka. Po dokončení objednávky systém vypočíta celkovú cenu. Ak cena prekročí stanovenú hranicu, doprava je zdarma; inak sa k objednávke pripočíta cena dopravy. Následne systém spracuje platbu. Objednávka sa vytvorí iba v prípade úspešnej platby.</p>
+              <div class="exercise-focus">Zameranie: cyklus a viacero rozhodnutí</div>
+            </div>
+          </article>
+
+          <article class="exercise-card">
+            <div class="exercise-number">9</div>
+            <div>
+              <h3>Práčka</h3>
+              <p>Používateľ vloží bielizeň, vyberie program a stlačí tlačidlo Štart. Ak nie sú zatvorené dvierka, práčka sa nespustí a upozorní používateľa. Po zatvorení dvierok vykoná postupne napustenie vody, pranie, vypustenie vody, tri cykly plákania a odstreďovanie. Nakoniec oznámi koniec programu.</p>
+              <div class="exercise-focus">Zameranie: sekvencia, podmienka a pevný počet opakovaní</div>
+            </div>
+          </article>
+
+          <article class="exercise-card">
+            <div class="exercise-number">10</div>
+            <div>
+              <h3>Cesta do práce</h3>
+              <p>Používateľ skontroluje počasie. Ak prší, vezme si dáždnik. Následne skontroluje dopravnú situáciu. Ak nie je zápcha, ide autom. Ak je zápcha, skontroluje dostupnosť MHD. Ak MHD premáva, použije MHD. Ak nepremáva, rozhodne sa medzi pešou cestou a taxi.</p>
+              <div class="exercise-focus">Zameranie: vnorené rozhodovanie</div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
