@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="sk">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,18 +14,22 @@
           <div class="brand-mark" aria-hidden="true">K</div>
           <div>
             <h1>Karel online</h1>
-            <p>Statický trenažér algoritmizácie bez inštalácie</p>
+            <p data-i18n="tagline">A browser-based algorithm trainer — no installation needed</p>
           </div>
         </a>
-        <nav class="main-nav" aria-label="Navigácia">
+        <nav class="main-nav" aria-label="Navigation" data-i18n-aria="navLabel">
           <a class="active" href="index.html">Karel</a>
-          <a href="diagramy.html">Diagramy</a>
+          <a href="diagramy.html" data-i18n="navDiagrams">Flowcharts</a>
         </nav>
       </div>
 
       <div class="top-controls">
+        <div id="languageSwitch" class="language-switch" role="group" aria-label="Language" data-i18n-aria="languageLabel">
+          <button type="button" data-lang="en" aria-pressed="true">EN</button>
+          <button type="button" data-lang="sk" aria-pressed="false">SK</button>
+        </div>
         <label class="field field-inline">
-          <span>Zadanie</span>
+          <span data-i18n="taskSelect">Task</span>
           <select id="worldSelect"></select>
         </label>
       </div>
@@ -36,28 +40,28 @@
         <section class="panel editor-panel" aria-labelledby="programHeading">
           <div class="panel-heading">
             <h2 id="programHeading">Program</h2>
-            <span id="programState" class="status-chip">Pripravený</span>
+            <span id="programState" class="status-chip">Ready</span>
           </div>
 
-          <textarea id="codeEditor" spellcheck="false" aria-label="Editor pseudokódu"></textarea>
+          <textarea id="codeEditor" spellcheck="false" aria-label="Pseudocode editor" data-i18n-aria="editorAria"></textarea>
 
-          <div class="run-controls" aria-label="Ovládanie programu">
-            <button id="runBtn" type="button" class="primary">Spustiť</button>
-            <button id="stepBtn" type="button">Krokovať</button>
-            <button id="pauseBtn" type="button">Pauza</button>
-            <button id="checkBtn" type="button">Skontrolovať</button>
-            <button id="loadExampleBtn" type="button">Riešenie</button>
-            <button id="resetBtn" type="button">Reset</button>
+          <div class="run-controls" aria-label="Program controls" data-i18n-aria="controlsAria">
+            <button id="runBtn" type="button" class="primary" data-i18n="run">Run</button>
+            <button id="stepBtn" type="button" data-i18n="step">Step</button>
+            <button id="pauseBtn" type="button" data-i18n="pause">Pause</button>
+            <button id="checkBtn" type="button" data-i18n="check">Check</button>
+            <button id="loadExampleBtn" type="button" data-i18n="solution">Solution</button>
+            <button id="resetBtn" type="button" data-i18n="reset">Reset</button>
           </div>
 
           <div class="speed-row">
-            <label for="speedRange">Rýchlosť animácie</label>
+            <label for="speedRange" data-i18n="animationSpeed">Animation speed</label>
             <input id="speedRange" type="range" min="80" max="900" value="320" step="20">
             <output id="speedValue" for="speedRange">320 ms</output>
           </div>
 
           <div class="line-state">
-            <span>Aktuálny riadok</span>
+            <span data-i18n="currentLine">Current line</span>
             <strong id="currentLine">-</strong>
           </div>
 
@@ -66,46 +70,32 @@
 
         <section class="panel reference-panel" aria-labelledby="languageHeading">
           <details open>
-            <summary id="languageHeading">Jazyk pseudokódu</summary>
+            <summary id="languageHeading" data-i18n="pseudocodeLanguage">Pseudocode language</summary>
             <div class="reference-grid">
-              <code>krok</code><span>posuň sa o jedno políčko dopredu</span>
-              <code>vlavo</code><span>otoč sa o 90 stupňov doľava</span>
-              <code>vpravo</code><span>otoč sa o 90 stupňov doprava</span>
-              <code>zober</code><span>zober značku z aktuálneho políčka</span>
-              <code>poloz</code><span>polož značku z batohu</span>
-              <code>opakuj 4</code><span>vykonaj blok pevný počet krát</span>
-              <code>kym volno_vpredu</code><span>opakuj blok, kým platí podmienka</span>
-              <code>ak znacka</code><span>vykonaj blok iba pri splnenej podmienke</span>
-              <code>inak</code><span>voliteľná vetva za príkazom <code>ak</code></span>
-              <code>funkcia nazov</code><span>vlastná inštrukcia ukončená slovom <code>koniec</code></span>
+              <code data-i18n="ref.stepCode">step</code><span data-i18n="ref.stepDesc">move one square forward</span>
+              <code data-i18n="ref.leftCode">left</code><span data-i18n="ref.leftDesc">turn 90 degrees to the left</span>
+              <code data-i18n="ref.rightCode">right</code><span data-i18n="ref.rightDesc">turn 90 degrees to the right</span>
+              <code data-i18n="ref.pickCode">pick</code><span data-i18n="ref.pickDesc">pick up a beeper from the current square</span>
+              <code data-i18n="ref.putCode">put</code><span data-i18n="ref.putDesc">put down a beeper from the bag</span>
+              <code data-i18n="ref.repeatCode">repeat 4</code><span data-i18n="ref.repeatDesc">run a block a fixed number of times</span>
+              <code data-i18n="ref.whileCode">while front_is_clear</code><span data-i18n="ref.whileDesc">repeat a block while a condition is true</span>
+              <code data-i18n="ref.ifCode">if beepers_present</code><span data-i18n="ref.ifDesc">run a block only when a condition is true</span>
+              <code data-i18n="ref.elseCode">else</code><span data-i18n="ref.elseDesc">optional branch after an if block</span>
+              <code data-i18n="ref.functionCode">function name</code><span data-i18n="ref.functionDesc">a custom instruction closed with end</span>
             </div>
 
-            <p class="subheading">Podmienky</p>
-            <div class="token-row">
-              <code>volno_vpredu</code>
-              <code>stena_vpredu</code>
-              <code>volno_vlavo</code>
-              <code>stena_vlavo</code>
-              <code>volno_vpravo</code>
-              <code>stena_vpravo</code>
-              <code>znacka</code>
-              <code>bez_znacky</code>
-              <code>mam_znacku</code>
-              <code>smer_sever</code>
-              <code>smer_juh</code>
-              <code>smer_vychod</code>
-              <code>smer_zapad</code>
-            </div>
+            <p class="subheading" data-i18n="conditions">Conditions</p>
+            <div id="conditionTokens" class="token-row"></div>
 
-            <pre class="mini-example"><code>opakuj 3
-  krok
-koniec
+            <pre class="mini-example"><code data-i18n="ref.example">repeat 3
+  step
+end
 
-ak znacka
-  zober
-inak
-  vlavo
-koniec</code></pre>
+if beepers_present
+  pick
+else
+  left
+end</code></pre>
           </details>
         </section>
       </div>
@@ -113,8 +103,8 @@ koniec</code></pre>
       <div class="run-zone">
         <section class="panel task-panel" aria-labelledby="taskHeading">
           <div class="panel-heading">
-            <h2 id="taskHeading">Zadanie</h2>
-            <span id="taskLevel" class="status-chip soft">začiatočník</span>
+            <h2 id="taskHeading" data-i18n="taskHeading">Task</h2>
+            <span id="taskLevel" class="status-chip soft">beginner</span>
           </div>
           <h3 id="taskTitle"></h3>
           <p id="taskStory"></p>
@@ -123,31 +113,32 @@ koniec</code></pre>
 
         <section class="panel world-panel" aria-labelledby="worldHeading">
           <div class="panel-heading panel-heading-tight">
-            <h2 id="worldHeading">Svet Karla</h2>
+            <h2 id="worldHeading" data-i18n="worldHeading">Karel's world</h2>
             <div class="stats">
-              <span id="stepCount">0 krokov</span>
+              <span id="stepCount">0 commands</span>
               <span id="positionState">(1, 1)</span>
-              <span id="directionState">východ</span>
-              <span id="bagState">batoh 0</span>
+              <span id="directionState">east</span>
+              <span id="bagState">bag 0</span>
             </div>
           </div>
 
           <div class="canvas-shell">
-            <canvas id="worldCanvas" aria-label="Mapa sveta robota Karla"></canvas>
+            <canvas id="worldCanvas" aria-label="Map of Karel's world" data-i18n-aria="canvasAria"></canvas>
           </div>
 
-          <div class="legend" aria-label="Legenda mapy">
+          <div class="legend" aria-label="Map legend" data-i18n-aria="legendAria">
             <span><i class="legend-karel"></i>Karel</span>
-            <span><i class="legend-target"></i>cieľ</span>
-            <span><i class="legend-beeper"></i>značka</span>
-            <span><i class="legend-wall"></i>stena</span>
-            <span><i class="legend-path"></i>posledný pohyb</span>
+            <span><i class="legend-target"></i><span data-i18n="legend.target">target</span></span>
+            <span><i class="legend-beeper"></i><span data-i18n="legend.beeper">beeper</span></span>
+            <span><i class="legend-wall"></i><span data-i18n="legend.wall">wall</span></span>
+            <span><i class="legend-path"></i><span data-i18n="legend.lastMove">last move</span></span>
           </div>
         </section>
       </div>
     </main>
   </div>
 
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

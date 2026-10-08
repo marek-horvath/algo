@@ -1,6 +1,9 @@
 (() => {
   "use strict";
 
+  const I18N = window.KAREL_I18N || { ui: { en: {} }, tasks: { en: {} } };
+  const SUPPORTED_LANGUAGES = new Set(["en", "sk"]);
+
   const MAX_ACTIONS = 5000;
   const MAX_LOOP_ITERATIONS = 1200;
   const MAX_CALL_DEPTH = 80;
@@ -644,6 +647,8 @@
   ];
 
   const el = {};
+  let currentLanguage = "en";
+  let editorSourceKind = "starter";
   let canvasContext = null;
   let currentTask = TASKS[0];
   let currentWorld = cloneWorld(TASKS[0].world);
@@ -667,6 +672,8 @@
 
   function init() {
     cacheElements();
+    currentLanguage = getInitialLanguage();
+    applyLanguageToDocument();
     canvasContext = el.worldCanvas.getContext("2d");
     populateTaskSelect();
     bindEvents();
@@ -675,7 +682,7 @@
     loadTask(initialTask);
     resizeCanvas();
     updateSpeedOutput();
-    appendLog("Vyber zadanie, napíš program a spusti Karla.", "ok");
+    appendLog(t("introLog"), "ok");
 
     if ("ResizeObserver" in window) {
       const observer = new ResizeObserver(resizeCanvas);
@@ -707,6 +714,90 @@
     el.taskTitle = document.getElementById("taskTitle");
     el.taskStory = document.getElementById("taskStory");
     el.goalList = document.getElementById("goalList");
+    el.conditionTokens = document.getElementById("conditionTokens");
+    el.languageButtons = Array.from(document.querySelectorAll("[data-lang]"));
+  }
+
+  function getInitialLanguage() {
+    const requested = new URLSearchParams(window.location.search).get("lang");
+    if (SUPPORTED_LANGUAGES.has(requested)) {
+      return requested;
+    }
+    try {
+      const saved = window.localStorage.getItem("karel-language");
+      if (SUPPORTED_LANGUAGES.has(saved)) {
+        return saved;
+      }
+    } catch (_) {
+      // Storage may be unavailable for local files or privacy-restricted browsers.
+    }
+    return "en";
+  }
+
+  function t(key, values = {}) {
+    const dictionary = I18N.ui[currentLanguage] || I18N.ui.en || {};
+    const fallback = I18N.ui.en || {};
+    const template = dictionary[key] ?? fallback[key] ?? key;
+    return String(template).replace(/\{(\w+)\}/g, (_, name) => values[name] ?? `{${name}}`);
+  }
+
+  function taskText(task, key) {
+    const localized = I18N.tasks[currentLanguage]?.[task.id];
+    return localized?.[key] ?? task[key] ?? "";
+  }
+
+  function goalText(task, goal, index) {
+    return I18N.tasks[currentLanguage]?.[task.id]?.goals?.[index] ?? goal.text;
+  }
+
+  function applyLanguageToDocument() {
+    document.documentElement.lang = currentLanguage;
+    document.title = t("pageTitle");
+    document.querySelectorAll("[data-i18n]").forEach((node) => {
+      node.textContent = t(node.dataset.i18n);
+    });
+    document.querySelectorAll("[data-i18n-aria]").forEach((node) => {
+      node.setAttribute("aria-label", t(node.dataset.i18nAria));
+    });
+    if (el.conditionTokens) {
+      el.conditionTokens.replaceChildren(...t("ref.conditions").split("|").map((token) => {
+        const code = document.createElement("code");
+        code.textContent = token;
+        return code;
+      }));
+    }
+    if (el.languageButtons) {
+      el.languageButtons.forEach((button) => {
+        const selected = button.dataset.lang === currentLanguage;
+        button.classList.toggle("active", selected);
+        button.setAttribute("aria-pressed", String(selected));
+      });
+    }
+  }
+
+  function changeLanguage(language) {
+    if (!SUPPORTED_LANGUAGES.has(language) || language === currentLanguage) {
+      return;
+    }
+    stopAutoRun();
+    currentLanguage = language;
+    try {
+      window.localStorage.setItem("karel-language", currentLanguage);
+    } catch (_) {
+      // The language still changes for the current page when storage is unavailable.
+    }
+    applyLanguageToDocument();
+    populateTaskSelect();
+    el.worldSelect.value = currentTask.id;
+    if (editorSourceKind !== "custom") {
+      el.codeEditor.value = taskText(currentTask, editorSourceKind);
+      runner = null;
+      programDirty = true;
+    }
+    renderTask();
+    updateStats();
+    const stateKey = el.programState.dataset.stateKey || "status.ready";
+    setProgramState(stateKey, el.programState.classList.contains("error") ? "error" : el.programState.classList.contains("success") ? "success" : "");
   }
 
   function populateTaskSelect() {
@@ -714,12 +805,15 @@
     for (const task of TASKS) {
       const option = document.createElement("option");
       option.value = task.id;
-      option.textContent = task.title;
+      option.textContent = taskText(task, "title");
       el.worldSelect.appendChild(option);
     }
   }
 
   function bindEvents() {
+    el.languageButtons.forEach((button) => {
+      button.addEventListener("click", () => changeLanguage(button.dataset.lang));
+    });
     el.worldSelect.addEventListener("change", () => loadTask(el.worldSelect.value));
     el.loadExampleBtn.addEventListener("click", loadExample);
     el.resetBtn.addEventListener("click", () => {
@@ -728,20 +822,21 @@
       runner = null;
       programDirty = true;
       clearLog();
-      appendLog("Svet bol vrátený do počiatočného stavu.", "ok");
-      setProgramState("Pripravený");
+      appendLog(t("resetLog"), "ok");
+      setProgramState("status.ready");
     });
     el.codeEditor.addEventListener("input", () => {
       programDirty = true;
       runner = null;
-      setProgramState("Upravený");
+      editorSourceKind = "custom";
+      setProgramState("status.modified");
       el.currentLine.textContent = "-";
     });
     el.runBtn.addEventListener("click", runProgram);
     el.stepBtn.addEventListener("click", stepProgram);
     el.pauseBtn.addEventListener("click", () => {
       stopAutoRun();
-      setProgramState("Pauza");
+      setProgramState("status.paused");
     });
     el.checkBtn.addEventListener("click", () => checkGoals(true));
     el.speedRange.addEventListener("input", updateSpeedOutput);
@@ -753,28 +848,30 @@
     currentTask = task || TASKS[0];
     currentWorld = cloneWorld(currentTask.world);
     el.worldSelect.value = currentTask.id;
-    el.codeEditor.value = currentTask.starter || "";
+    el.codeEditor.value = taskText(currentTask, "starter");
+    editorSourceKind = "starter";
     programDirty = true;
     runner = null;
     clearLog();
     resetWorld({ keepLog: true });
     renderTask();
-    setProgramState("Pripravený");
-    appendLog(`Načítané zadanie: ${currentTask.title}`, "ok");
+    setProgramState("status.ready");
+    appendLog(t("loadedTaskLog", { title: taskText(currentTask, "title") }), "ok");
   }
 
   function loadExample() {
-    el.codeEditor.value = currentTask.example || currentTask.starter || "";
+    el.codeEditor.value = taskText(currentTask, "example") || taskText(currentTask, "starter");
+    editorSourceKind = taskText(currentTask, "example") ? "example" : "starter";
     programDirty = true;
     runner = null;
-    setProgramState("Riešenie vložené");
-    appendLog("Do editora bolo vložené riešenie.", "ok");
+    setProgramState("status.solutionInserted");
+    appendLog(t("solutionLog"), "ok");
   }
 
   function renderTask(goalResults = null) {
-    el.taskLevel.textContent = currentTask.level || "zadanie";
-    el.taskTitle.textContent = currentTask.title;
-    el.taskStory.textContent = currentTask.story;
+    el.taskLevel.textContent = taskText(currentTask, "level") || t("taskFallback");
+    el.taskTitle.textContent = taskText(currentTask, "title");
+    el.taskStory.textContent = taskText(currentTask, "story");
     renderGoals(goalResults);
   }
 
@@ -782,13 +879,13 @@
     el.goalList.innerHTML = "";
     if (!currentTask.goals || currentTask.goals.length === 0) {
       const item = document.createElement("li");
-      item.textContent = "Toto zadanie nemá automaticky nastavený cieľ.";
+      item.textContent = t("noAutomaticGoal");
       el.goalList.appendChild(item);
       return;
     }
     currentTask.goals.forEach((goal, index) => {
       const item = document.createElement("li");
-      item.textContent = goal.text;
+      item.textContent = goalText(currentTask, goal, index);
       if (goalResults) {
         item.classList.add(goalResults[index]?.pass ? "pass" : "fail");
       }
@@ -820,8 +917,8 @@
         done: false
       };
       programDirty = false;
-      setProgramState("Pripravený");
-      appendLog("Program je pripravený na spustenie.", "ok");
+      setProgramState("status.ready");
+      appendLog(t("programReadyLog"), "ok");
       return true;
     } catch (error) {
       handleError(error);
@@ -839,7 +936,7 @@
       }
     }
     autoRunning = true;
-    setProgramState("Beží");
+    setProgramState("status.running");
     while (autoRunning && runner && !runner.done) {
       const advanced = await advanceOneAction();
       if (!advanced) {
@@ -864,8 +961,8 @@
       if (result.done) {
         runner.done = true;
         el.currentLine.textContent = "-";
-        setProgramState("Hotovo", "success");
-        appendLog("Program skončil.", "ok");
+        setProgramState("status.done", "success");
+        appendLog(t("programEndedLog"), "ok");
         checkGoals(false);
         return false;
       }
@@ -890,16 +987,17 @@
   }
 
   function handleError(error) {
-    const linePart = error.line ? `Riadok ${error.line}: ` : "";
-    setProgramState("Chyba", "error");
+    const linePart = error.line ? t("linePrefix", { line: error.line }) : "";
+    setProgramState("status.error", "error");
     appendLog(`${linePart}${error.message}`, "error");
     if (error.line) {
       el.currentLine.textContent = String(error.line);
     }
   }
 
-  function setProgramState(text, type = "") {
-    el.programState.textContent = text;
+  function setProgramState(key, type = "") {
+    el.programState.dataset.stateKey = key;
+    el.programState.textContent = t(key);
     el.programState.classList.remove("error", "success");
     if (type) {
       el.programState.classList.add(type);
@@ -910,10 +1008,10 @@
     if (!state) {
       return;
     }
-    el.stepCount.textContent = `${state.actions} príkazov`;
+    el.stepCount.textContent = t("commandsCount", { count: state.actions });
     el.positionState.textContent = `(${state.karel.x}, ${state.karel.y})`;
-    el.directionState.textContent = DIRS[state.karel.dir].label;
-    el.bagState.textContent = `batoh ${state.karel.bag}`;
+    el.directionState.textContent = t(`direction.${state.karel.dir}`);
+    el.bagState.textContent = t("bagCount", { count: state.karel.bag });
   }
 
   function updateSpeedOutput() {
@@ -946,7 +1044,7 @@
     const functions = new Map();
     const result = parseBlock(lines, 0, new Set(), true, functions);
     if (result.stop) {
-      throw new KarelError(lines[result.index]?.number, `Neočakávaný príkaz ${result.stop}.`);
+      throw new KarelError(lines[result.index]?.number, t("error.unexpected", { token: result.stop }));
     }
     const main = result.nodes.length > 0 ? result.nodes : functions.get("main") || [];
     return { nodes: main, functions };
@@ -972,30 +1070,30 @@
         if (stopTokens.has("end")) {
           return { nodes, index, stop: "koniec" };
         }
-        throw new KarelError(line.number, "Príkaz koniec nemá zodpovedajúci blok.");
+        throw new KarelError(line.number, t("error.endWithoutBlock"));
       }
 
       if (isElseToken(token)) {
         if (stopTokens.has("else")) {
           return { nodes, index, stop: "inak" };
         }
-        throw new KarelError(line.number, "Príkaz inak môže byť iba vo vnútri príkazu ak.");
+        throw new KarelError(line.number, t("error.elseOutsideIf"));
       }
 
       if (first === "funkcia" || first === "function" || first === "def") {
         if (!allowFunctions) {
-          throw new KarelError(line.number, "Funkciu definuj mimo blokov ak, kym a opakuj.");
+          throw new KarelError(line.number, t("error.functionOutside"));
         }
         const name = normalizeToken(parts.slice(1).join(" "));
         if (!name) {
-          throw new KarelError(line.number, "Funkcia potrebuje názov.");
+          throw new KarelError(line.number, t("error.functionNeedsName"));
         }
         if (COMMAND_ALIASES[name]) {
-          throw new KarelError(line.number, `Názov ${name} je vyhradený príkaz.`);
+          throw new KarelError(line.number, t("error.reservedName", { name }));
         }
         const nested = parseBlock(lines, index + 1, new Set(["end"]), false, functions);
         if (nested.stop !== "koniec") {
-          throw new KarelError(line.number, `Funkcia ${name} nie je ukončená príkazom koniec.`);
+          throw new KarelError(line.number, t("error.functionMissingEnd", { name }));
         }
         functions.set(name, nested.nodes);
         index = nested.index + 1;
@@ -1006,7 +1104,7 @@
         const count = parseRepeatCount(parts, line.number);
         const nested = parseBlock(lines, index + 1, new Set(["end"]), false, functions);
         if (nested.stop !== "koniec") {
-          throw new KarelError(line.number, "Blok opakuj nie je ukončený príkazom koniec.");
+          throw new KarelError(line.number, t("error.repeatMissingEnd"));
         }
         nodes.push({ type: "repeat", count, body: nested.nodes, line: line.number });
         index = nested.index + 1;
@@ -1017,7 +1115,7 @@
         const condition = parseCondition(parts.slice(1).join(" "), line.number);
         const nested = parseBlock(lines, index + 1, new Set(["end"]), false, functions);
         if (nested.stop !== "koniec") {
-          throw new KarelError(line.number, "Blok kym nie je ukončený príkazom koniec.");
+          throw new KarelError(line.number, t("error.whileMissingEnd"));
         }
         nodes.push({ type: "while", condition, body: nested.nodes, line: line.number });
         index = nested.index + 1;
@@ -1032,12 +1130,12 @@
         if (thenBlock.stop === "inak") {
           const elseBlock = parseBlock(lines, thenBlock.index + 1, new Set(["end"]), false, functions);
           if (elseBlock.stop !== "koniec") {
-            throw new KarelError(line.number, "Vetva inak nie je ukončená príkazom koniec.");
+            throw new KarelError(line.number, t("error.elseMissingEnd"));
           }
           elseBody = elseBlock.nodes;
           endIndex = elseBlock.index;
         } else if (thenBlock.stop !== "koniec") {
-          throw new KarelError(line.number, "Blok ak nie je ukončený príkazom koniec.");
+          throw new KarelError(line.number, t("error.ifMissingEnd"));
         }
         nodes.push({ type: "if", condition, thenBody: thenBlock.nodes, elseBody, line: line.number });
         index = endIndex + 1;
@@ -1059,7 +1157,7 @@
   function parseRepeatCount(parts, lineNumber) {
     const value = Number(parts[1]);
     if (!Number.isInteger(value) || value < 0 || value > 999) {
-      throw new KarelError(lineNumber, "Príkaz opakuj potrebuje celé číslo od 0 do 999.");
+      throw new KarelError(lineNumber, t("error.repeatCount"));
     }
     return value;
   }
@@ -1067,7 +1165,7 @@
   function parseCondition(text, lineNumber) {
     let token = normalizeToken(text);
     if (!token) {
-      throw new KarelError(lineNumber, "Podmienka chýba.");
+      throw new KarelError(lineNumber, t("error.conditionMissing"));
     }
     let inverted = false;
     if (token.startsWith("nie_")) {
@@ -1079,7 +1177,7 @@
     }
     const key = CONDITION_ALIASES[token];
     if (!key) {
-      throw new KarelError(lineNumber, `Neznáma podmienka: ${text}.`);
+      throw new KarelError(lineNumber, t("error.unknownCondition", { condition: text }));
     }
     return { key, inverted, text: token };
   }
@@ -1090,12 +1188,12 @@
 
   function* executeNodes(nodes, parsed, depth) {
     if (depth > MAX_CALL_DEPTH) {
-      throw new KarelError(null, "Príliš hlboké volanie funkcií.");
+      throw new KarelError(null, t("error.callDepth"));
     }
 
     for (const node of nodes) {
       if (actionCount >= MAX_ACTIONS) {
-        throw new KarelError(node.line, `Program prekročil limit ${MAX_ACTIONS} vykonaných príkazov.`);
+        throw new KarelError(node.line, t("error.actionLimit", { limit: MAX_ACTIONS }));
       }
 
       if (node.type === "command") {
@@ -1107,7 +1205,7 @@
         }
         const functionBody = parsed.functions.get(node.name);
         if (!functionBody) {
-          throw new KarelError(node.line, `Neznámy príkaz alebo funkcia: ${node.display}.`);
+          throw new KarelError(node.line, t("error.unknownCommand", { command: node.display }));
         }
         yield* executeNodes(functionBody, parsed, depth + 1);
         continue;
@@ -1122,13 +1220,13 @@
 
       if (node.type === "while") {
         if (node.body.length === 0) {
-          throw new KarelError(node.line, "Prázdny cyklus kym by nikdy nezmenil stav programu.");
+          throw new KarelError(node.line, t("error.emptyWhile"));
         }
         let loops = 0;
         while (evaluateCondition(node.condition)) {
           loops += 1;
           if (loops > MAX_LOOP_ITERATIONS) {
-            throw new KarelError(node.line, "Cyklus kym prekročil bezpečnostný limit opakovaní.");
+            throw new KarelError(node.line, t("error.loopLimit"));
           }
           yield* executeNodes(node.body, parsed, depth);
         }
@@ -1151,7 +1249,7 @@
     if (command === "step") {
       const dir = DIRS[state.karel.dir];
       if (hasWall(state, state.karel.x, state.karel.y, state.karel.dir)) {
-        throw new KarelError(line, "Karel nemôže spraviť krok: pred ním je stena alebo okraj sveta.");
+        throw new KarelError(line, t("error.wall"));
       }
       const to = {
         x: state.karel.x + dir.dx,
@@ -1162,7 +1260,7 @@
       state.karel.y = to.y;
       state.actions += 1;
       state.lastMove = { from: before, to: { ...state.karel } };
-      return { type: "move", line, from: before, to: { ...state.karel }, label: "krok" };
+      return { type: "move", line, from: before, to: { ...state.karel }, label: t("commandStep") };
     }
 
     if (command === "left" || command === "right" || command === "back") {
@@ -1176,7 +1274,7 @@
       const key = pointKey(state.karel.x, state.karel.y);
       const count = state.beepers.get(key) || 0;
       if (count <= 0) {
-        throw new KarelError(line, "Na tomto políčku nie je žiadna značka na zodvihnutie.");
+        throw new KarelError(line, t("error.noBeeper"));
       }
       if (count === 1) {
         state.beepers.delete(key);
@@ -1185,46 +1283,46 @@
       }
       state.karel.bag += 1;
       state.actions += 1;
-      return { type: "beeper", mode: "pick", line, at: { x: before.x, y: before.y }, label: "zober" };
+      return { type: "beeper", mode: "pick", line, at: { x: before.x, y: before.y }, label: t("commandPick") };
     }
 
     if (command === "put") {
       if (state.karel.bag <= 0) {
-        throw new KarelError(line, "Karel nemá v batohu žiadnu značku.");
+        throw new KarelError(line, t("error.emptyBag"));
       }
       const key = pointKey(state.karel.x, state.karel.y);
       state.beepers.set(key, (state.beepers.get(key) || 0) + 1);
       state.karel.bag -= 1;
       state.actions += 1;
-      return { type: "beeper", mode: "put", line, at: { x: before.x, y: before.y }, label: "polož" };
+      return { type: "beeper", mode: "put", line, at: { x: before.x, y: before.y }, label: t("commandPut") };
     }
 
     state.actions += 1;
-    return { type: "wait", line, from: before, to: { ...state.karel }, label: "čakaj" };
+    return { type: "wait", line, from: before, to: { ...state.karel }, label: t("commandWait") };
   }
 
   function commandLabel(command) {
     if (command === "left") {
-      return "otoč vľavo";
+      return t("commandLeft");
     }
     if (command === "right") {
-      return "otoč vpravo";
+      return t("commandRight");
     }
-    return "otoč sa";
+    return t("commandBack");
   }
 
   function formatAction(action) {
-    const line = action.line ? `R${action.line}` : "R?";
+    const line = action.line ? t("lineShort", { line: action.line }) : t("lineUnknown");
     if (action.type === "move") {
-      return `${line}: krok na (${action.to.x}, ${action.to.y})`;
+      return t("actionStep", { line, x: action.to.x, y: action.to.y });
     }
     if (action.type === "turn") {
-      return `${line}: ${action.label}, smer ${DIRS[action.to.dir].label}`;
+      return t("actionTurn", { line, action: action.label, direction: t(`direction.${action.to.dir}`) });
     }
     if (action.type === "beeper") {
-      return `${line}: ${action.label} značku, batoh ${state.karel.bag}`;
+      return t("actionBeeper", { line, action: action.label, bag: state.karel.bag });
     }
-    return `${line}: čakaj`;
+    return t("actionWait", { line });
   }
 
   function evaluateCondition(condition) {
@@ -1270,7 +1368,7 @@
   function checkGoals(manual) {
     if (!currentTask.goals || currentTask.goals.length === 0) {
       renderGoals();
-      appendLog("Toto zadanie nemá automatickú kontrolu cieľa.", "warn");
+      appendLog(t("noAutomaticCheck"), "warn");
       return;
     }
     const results = currentTask.goals.map((goal) => ({
@@ -1280,13 +1378,13 @@
     renderTask(results);
     const passed = results.filter((result) => result.pass).length;
     if (passed === results.length) {
-      setProgramState("Splnené", "success");
-      appendLog(`Cieľ splnený: ${passed}/${results.length}.`, "ok");
+      setProgramState("status.passed", "success");
+      appendLog(t("goalPassed", { passed, total: results.length }), "ok");
     } else {
       if (manual) {
-        setProgramState("Nesplnené");
+        setProgramState("status.notPassed");
       }
-      appendLog(`Cieľ zatiaľ nesplnený: ${passed}/${results.length}.`, "warn");
+      appendLog(t("goalNotPassed", { passed, total: results.length }), "warn");
     }
   }
 

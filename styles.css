@@ -187,6 +187,30 @@ button.active {
   flex-wrap: wrap;
 }
 
+.language-switch {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.language-switch button {
+  min-width: 42px;
+  min-height: 32px;
+  padding: 0 9px;
+  border-color: transparent;
+  background: transparent;
+  font-size: 13px;
+}
+
+.language-switch button.active {
+  border-color: #b9d6d8;
+  background: #dfeef0;
+  color: var(--accent-strong);
+}
+
 .field {
   display: grid;
   gap: 6px;
